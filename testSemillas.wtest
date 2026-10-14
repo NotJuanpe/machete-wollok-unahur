@@ -1,0 +1,10 @@
+import plantas.*
+import parcelas.*
+import inta.*
+
+describe "Tests Semillas al viento" {
+
+    test "Test ejemplo" {
+        assert.that(true)
+    }
+}
