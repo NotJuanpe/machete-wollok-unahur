@@ -4,7 +4,197 @@ import inta.*
 
 describe "Tests Semillas al viento" {
 
-    test "Test ejemplo" {
-        assert.that(true)
+    test "Menta calcula semillas, fuerza, sol y espacio" {
+        const mentaAlta = new Menta(anioObtencion = 2020, altura = 0.5)
+        const mentaBaja = new Menta(anioObtencion = 2020, altura = 0.4)
+
+        assert.that(mentaAlta.horasDeSolQueTolera() == 6)
+        assert.that(!mentaAlta.esFuerte())
+        assert.that(mentaAlta.daNuevasSemillas())
+        assert.that(!mentaBaja.daNuevasSemillas())
+        assert.that(mentaAlta.espacioQueOcupa() == 1.5)
+    }
+
+    test "Soja calcula tolerancia al sol en los limites de altura" {
+        assert.that(new Soja(anioObtencion = 2020, altura = 0.49).horasDeSolQueTolera() == 6)
+        assert.that(new Soja(anioObtencion = 2020, altura = 0.5).horasDeSolQueTolera() == 7)
+        assert.that(new Soja(anioObtencion = 2020, altura = 1).horasDeSolQueTolera() == 7)
+        assert.that(new Soja(anioObtencion = 2020, altura = 1.01).horasDeSolQueTolera() == 9)
+    }
+
+    test "Soja da semillas solo con semilla reciente y altura mayor a un metro" {
+        assert.that(new Soja(anioObtencion = 2008, altura = 1.1).daNuevasSemillas())
+        assert.that(!new Soja(anioObtencion = 2007, altura = 1.1).daNuevasSemillas())
+        assert.that(!new Soja(anioObtencion = 2020, altura = 1).daNuevasSemillas())
+        assert.that(new Soja(anioObtencion = 2020, altura = 1.1).espacioQueOcupa() == 0.55)
+    }
+
+    test "Quinoa usa su tolerancia configurable y semillas anteriores a 2005" {
+        const quinoaReciente = new Quinoa(anioObtencion = 2005, altura = 0.5, horasDeSol = 9)
+        const quinoaAntigua = new Quinoa(anioObtencion = 2004, altura = 0.5, horasDeSol = 9)
+
+        assert.that(quinoaReciente.horasDeSolQueTolera() == 9)
+        assert.that(!quinoaReciente.daNuevasSemillas())
+        assert.that(quinoaAntigua.daNuevasSemillas())
+        assert.that(quinoaReciente.espacioQueOcupa() == 0.5)
+    }
+
+    test "La fuerza depende de tolerar mas de diez horas y permite dar semillas" {
+        const quinoaFuerte = new Quinoa(anioObtencion = 2020, altura = 0.5, horasDeSol = 11)
+        const quinoaAlLimite = new Quinoa(anioObtencion = 2020, altura = 0.5, horasDeSol = 10)
+
+        assert.that(quinoaFuerte.esFuerte())
+        assert.that(quinoaFuerte.daNuevasSemillas())
+        assert.that(!quinoaAlLimite.esFuerte())
+    }
+
+    test "Soja transgenica hereda tolerancia y espacio pero nunca da semillas" {
+        const soja = new SojaTransgenica(anioObtencion = 2020, altura = 1.2)
+
+        assert.that(soja.horasDeSolQueTolera() == 9)
+        assert.that(soja.espacioQueOcupa() == 0.6)
+        assert.that(!soja.esFuerte())
+        assert.that(!soja.daNuevasSemillas())
+    }
+
+    test "Hierbabuena ocupa el doble que menta y conserva sus reglas" {
+        const hierbabuena = new Hierbabuena(anioObtencion = 2020, altura = 0.5)
+
+        assert.that(hierbabuena.horasDeSolQueTolera() == 6)
+        assert.that(hierbabuena.espacioQueOcupa() == 3)
+        assert.that(hierbabuena.daNuevasSemillas())
+    }
+
+    test "Parcela calcula superficie y cantidad maxima segun sus dimensiones" {
+        const parcelaAncha = new Parcela(ancho = 20, largo = 1, horasDeSol = 8, plantas = [])
+        const parcelaNoMasAncha = new Parcela(ancho = 3, largo = 3, horasDeSol = 8, plantas = [])
+
+        assert.that(parcelaAncha.superficie() == 20)
+        assert.that(parcelaAncha.cantidadMaximaDePlantasQueTolera() == 4)
+        assert.that(parcelaNoMasAncha.cantidadMaximaDePlantasQueTolera() == 6)
+    }
+
+    test "Parcela detecta complicaciones por cualquier planta con tolerancia menor" {
+        const soja = new Soja(anioObtencion = 2020, altura = 0.6)
+        const parcela = new Parcela(ancho = 20, largo = 1, horasDeSol = 8, plantas = [soja])
+        const parcelaSinProblemas = new Parcela(ancho = 20, largo = 1, horasDeSol = 7, plantas = [soja])
+
+        assert.that(parcela.tieneComplicaciones())
+        assert.that(!parcelaSinProblemas.tieneComplicaciones())
+    }
+
+    test "Parcela agrega una planta mientras no supere su capacidad" {
+        const parcela = new Parcela(ancho = 20, largo = 1, horasDeSol = 8, plantas = [])
+        parcela.plantar(new Menta(anioObtencion = 2020, altura = 0.5))
+
+        assert.that(parcela.plantas().size() == 1)
+    }
+
+    test "Parcela rechaza plantar por encima de su capacidad" {
+        const parcela = new Parcela(ancho = 20, largo = 1, horasDeSol = 8, plantas = [
+            new Menta(anioObtencion = 2020, altura = 0.5),
+            new Menta(anioObtencion = 2020, altura = 0.5),
+            new Menta(anioObtencion = 2020, altura = 0.5),
+            new Menta(anioObtencion = 2020, altura = 0.5)
+        ])
+
+        assert.throwsException({ parcela.plantar(new Menta(anioObtencion = 2020, altura = 0.5)) })
+    }
+
+    test "Parcela aplica el limite aunque la capacidad maxima no sea entera" {
+        const parcela = new Parcela(ancho = 6, largo = 1, horasDeSol = 8, plantas = [
+            new Menta(anioObtencion = 2020, altura = 0.5)
+        ])
+
+        assert.throwsException({ parcela.plantar(new Menta(anioObtencion = 2020, altura = 0.5)) })
+    }
+
+    test "Las parcelas ecologicas verifican complicaciones e idealidad para asociar" {
+        const menta = new Menta(anioObtencion = 2020, altura = 0.5)
+        const ecologicaIdeal = new ParcelaEcologica(ancho = 4, largo = 2, horasDeSol = 6, plantas = [menta])
+        const ecologicaConComplicaciones = new ParcelaEcologica(ancho = 4, largo = 2, horasDeSol = 8, plantas = [menta])
+        const ecologicaNoIdeal = new ParcelaEcologica(ancho = 2, largo = 2, horasDeSol = 6, plantas = [menta])
+
+        assert.that(ecologicaIdeal.seAsociaBien(menta))
+        assert.that(!ecologicaConComplicaciones.seAsociaBien(menta))
+        assert.that(!ecologicaNoIdeal.seAsociaBien(menta))
+    }
+
+    test "Las parcelas industriales asocian plantas fuertes si hay como maximo dos" {
+        const quinoaFuerte = new Quinoa(anioObtencion = 2020, altura = 0.5, horasDeSol = 11)
+        const quinoaDebil = new Quinoa(anioObtencion = 2020, altura = 0.5, horasDeSol = 10)
+        const industrial = new ParcelaIndustrial(ancho = 20, largo = 1, horasDeSol = 12, plantas = [])
+
+        assert.that(industrial.seAsociaBien(quinoaFuerte))
+        assert.that(!industrial.seAsociaBien(quinoaDebil))
+        industrial.plantar(quinoaFuerte)
+        industrial.plantar(quinoaFuerte)
+        industrial.plantar(quinoaFuerte)
+        assert.that(!industrial.seAsociaBien(quinoaFuerte))
+    }
+
+    test "Porcentaje de plantas bien asociadas es el porcentaje de la coleccion" {
+        const quinoaFuerte = new Quinoa(anioObtencion = 2020, altura = 0.5, horasDeSol = 11)
+        const quinoaDebil = new Quinoa(anioObtencion = 2020, altura = 0.5, horasDeSol = 10)
+        const parcela = new ParcelaIndustrial(ancho = 20, largo = 1, horasDeSol = 12, plantas = [
+            quinoaFuerte,
+            quinoaDebil
+        ])
+
+        assert.that(parcela.porcentajeDePlantasBienAsociadas() == 50)
+        assert.that(new ParcelaIndustrial(ancho = 20, largo = 1, horasDeSol = 12, plantas = [])
+            .porcentajeDePlantasBienAsociadas() == 0)
+    }
+
+    test "Las plantas evaluan idealidad segun su especie" {
+        const menta = new Menta(anioObtencion = 2020, altura = 0.5)
+        const hierbabuena = new Hierbabuena(anioObtencion = 2020, altura = 0.5)
+        const quinoa = new Quinoa(anioObtencion = 2020, altura = 0.5, horasDeSol = 8)
+        const soja = new Soja(anioObtencion = 2020, altura = 0.6)
+        const transgenica = new SojaTransgenica(anioObtencion = 2020, altura = 0.6)
+
+        assert.that(menta.parcelaEsIdeal(new Parcela(ancho = 4, largo = 2, horasDeSol = 6, plantas = [])))
+        assert.that(hierbabuena.parcelaEsIdeal(new Parcela(ancho = 4, largo = 2, horasDeSol = 6, plantas = [])))
+        assert.that(quinoa.parcelaEsIdeal(new Parcela(ancho = 4, largo = 2, horasDeSol = 8, plantas = [])))
+        assert.that(!quinoa.parcelaEsIdeal(new Parcela(ancho = 4, largo = 2, horasDeSol = 8, plantas = [
+            new Menta(anioObtencion = 2020, altura = 1.51)
+        ])))
+        assert.that(soja.parcelaEsIdeal(new Parcela(ancho = 4, largo = 2, horasDeSol = 7, plantas = [])))
+        assert.that(transgenica.parcelaEsIdeal(new Parcela(ancho = 5, largo = 1, horasDeSol = 9, plantas = [])))
+    }
+
+    test "INTA calcula promedio de plantas por parcela" {
+        inta.agregarParcela(new Parcela(ancho = 20, largo = 1, horasDeSol = 8, plantas = [
+            new Menta(anioObtencion = 2020, altura = 0.5)
+        ]))
+        inta.agregarParcela(new Parcela(ancho = 20, largo = 1, horasDeSol = 8, plantas = [
+            new Menta(anioObtencion = 2020, altura = 0.5),
+            new Menta(anioObtencion = 2020, altura = 0.5)
+        ]))
+
+        assert.that(inta.promedioDePlantas() == 1.5)
+    }
+
+    test "INTA elige la parcela con mayor porcentaje entre las que tienen mas de cuatro plantas" {
+        const menta = new Menta(anioObtencion = 2020, altura = 0.5)
+        const soja = new Soja(anioObtencion = 2020, altura = 0.6)
+        const quinoa = new Quinoa(anioObtencion = 2020, altura = 0.5, horasDeSol = 6)
+        const candidataParcial = new ParcelaEcologica(ancho = 3, largo = 3, horasDeSol = 6, plantas = [
+            menta, menta, menta, menta, soja
+        ])
+        const candidataCompleta = new ParcelaEcologica(ancho = 3, largo = 3, horasDeSol = 6, plantas = [
+            quinoa, quinoa, quinoa, quinoa, quinoa
+        ])
+        const insuficientesPlantas = new ParcelaEcologica(ancho = 3, largo = 3, horasDeSol = 6, plantas = [
+            quinoa, quinoa, quinoa, quinoa
+        ])
+
+        inta.agregarParcela(candidataParcial)
+        inta.agregarParcela(candidataCompleta)
+        inta.agregarParcela(insuficientesPlantas)
+
+        assert.that(candidataParcial.porcentajeDePlantasBienAsociadas() == 80)
+        assert.that(candidataCompleta.porcentajeDePlantasBienAsociadas() == 100)
+        assert.that(inta.parcelaMasAutosustentable() == candidataCompleta)
     }
 }
