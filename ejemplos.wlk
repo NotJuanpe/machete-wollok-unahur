@@ -32,6 +32,15 @@ class Vaca inherits Animal {
   override method sonido() = "muuu"
 }
 
+class Preparado {
+  var property listo = false
+
+  // initialize se ejecuta automaticamente al crear cada instancia.
+  method initialize() {
+    self.listo(true)
+  }
+}
+
 class Manada {
   var property animales
 

@@ -101,6 +101,45 @@ ana.esMayor()
   es mas claro que recalcularlo desde afuera.
 - No expongas el estado si alcanza con ofrecer una operacion que lo modifica.
 
+### `initialize()`: inicializacion al crear el objeto
+
+`initialize()` es un metodo especial que Wollok ejecuta automaticamente cuando
+se instancia un objeto con `new`. Cumple un rol parecido al constructor de
+otros lenguajes: permite dejar el objeto listo para usar.
+
+```wollok
+class Preparado {
+  var property listo = false
+
+  method initialize() {
+    self.listo(true)
+  }
+}
+
+const preparado = new Preparado()
+preparado.listo() // true: initialize ya se ejecuto
+```
+
+Para atributos comunes, suele alcanzar con inicializar la propiedad en la
+declaracion o darle valor al crear la instancia:
+`new Persona(nombre = "Ana", edad = 20)`. Define `initialize()` cuando haga
+falta realizar una preparacion adicional. No es un metodo que normalmente
+tengas que llamar a mano.
+
+Si una subclase redefine `initialize()` y necesita conservar la inicializacion
+de la clase padre, llama `super()`:
+
+```wollok
+class PreparadoEspecial inherits Preparado {
+  var property verificado = false
+
+  override method initialize() {
+    super()
+    self.verificado(true)
+  }
+}
+```
+
 ## Polimorfismo y referencias
 
 Polimorfismo: distintos objetos responden al mismo mensaje con su propia regla.

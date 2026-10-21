@@ -151,34 +151,31 @@ assert.that([1, 2, 3].contains(2))
 assert.throwsException({ [].first() })
 ```
 
-## Wollok Game: mensajes frecuentes
+## Inicializacion de instancias
 
-El juego trabaja con objetos visuales que entienden una posicion (`position`).
-Algunas operaciones del objeto global `game`:
+La guia oficial describe `initialize()` como un mensaje de `Object` que se
+ejecuta cuando se instancia cualquier objeto. Se puede redefinir para preparar
+el estado de una clase:
 
 ```wollok
-game.width(10)
-game.height(10)
-game.title("Mi juego")
-game.addVisual(jugador)
-game.removeVisual(jugador)
-game.start()
+class Preparado {
+  var property listo = false
+
+  method initialize() {
+    self.listo(true)
+  }
+}
+
+const preparado = new Preparado()
+preparado.listo() // true
 ```
 
-- `game.at(x, y)`, `game.origin()` y `game.center()` crean posiciones.
-- `game.say(objetoVisual, mensaje)` muestra un mensaje en el tablero.
-- `game.onTick(milisegundos, nombre, { => accion })` registra una accion
-  repetida; `removeTickEvent(nombre)` la elimina.
-- `game.schedule(milisegundos, { => accion })` agenda una accion de una sola vez.
-- `game.whenCollideDo(objeto, { otro => accion })` registra una accion durante
-  una colision; `onCollideDo` la registra para el momento de la colision.
-- `game.getObjectsIn(posicion)` consulta los objetos de una celda.
-- Las teclas aceptan acciones con `keyboard.tecla().onPressDo({ => accion })`
-  y `onReleaseDo({ => accion })`.
-
-Los tiempos de `onTick` y `schedule` se expresan en milisegundos. Consultar la
-documentacion y los ejemplos del TP Game para inicializacion, sprites y reglas
-del tablero concretas.
+En general, usa argumentos nombrados de `new` para dar valores iniciales a las
+propiedades (`new Persona(nombre = "Ana")`) y redefine `initialize()` solo
+cuando necesitas logica adicional. Si redefinis el inicializador en una
+subclase y tambien necesitas la preparacion heredada, llama a `super()`.
+Hay un ejemplo comprobable en [ejemplos.wlk](ejemplos.wlk) y
+[ejemplos.wtest](ejemplos.wtest).
 
 ## Fuente y alcance
 

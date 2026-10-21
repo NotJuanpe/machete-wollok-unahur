@@ -1,6 +1,12 @@
 import ejemplos.*
 
 describe "Ejemplos de objetos, herencia y colecciones" {
+  test "initialize prepara el estado al crear un objeto" {
+    const preparado = new Preparado()
+
+    assert.that(preparado.listo())
+  }
+
   // Los objetos distintos responden al mismo mensaje sin preguntar su tipo.
   test "los objetos responden polimorficamente al mismo mensaje" {
     const perro = new Perro(nombre = "Mora")

@@ -11,8 +11,8 @@ explicaciones cortas, ejemplos ejecutables y tests.
 - [Tests de los ejemplos](ejemplos.wtest)
 
 Los ejemplos muestran objetos, clases, polimorfismo, herencia, bloques y
-colecciones. En particular, comparan un `if` que pregunta el tipo con una
-solucion polimorfica.
+colecciones e inicializacion con `initialize()`. En particular, comparan un
+`if` que pregunta el tipo con una solucion polimorfica.
 
 ## Consultar con GitHub Copilot Chat
 
