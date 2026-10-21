@@ -1,6 +1,7 @@
 import ejemplos.*
 
 describe "Ejemplos de objetos, herencia y colecciones" {
+  // Los objetos distintos responden al mismo mensaje sin preguntar su tipo.
   test "los objetos responden polimorficamente al mismo mensaje" {
     const perro = new Perro(nombre = "Mora")
     const gato = new Gato(nombre = "Luna")
@@ -13,6 +14,7 @@ describe "Ejemplos de objetos, herencia y colecciones" {
     assert.that(manada.sonidos() == ["guau", "miau", "muuu"])
   }
 
+  // La vaca demuestra que el if quedo incompleto pero el mensaje polimorfico funciona.
   test "el if por especie falla al agregar un tipo nuevo" {
     const vaca = new Vaca(nombre = "Lola")
 
@@ -20,6 +22,7 @@ describe "Ejemplos de objetos, herencia y colecciones" {
     assert.that(sonidoPolimorfico.sonidoDe(vaca) == "muuu")
   }
 
+  // Comer es un efecto heredado y actualiza el estado de cada instancia.
   test "la subclase hereda metodos y redefine otros" {
     const perro = new Perro(nombre = "Mora")
     const gato = new Gato(nombre = "Luna")
@@ -31,6 +34,7 @@ describe "Ejemplos de objetos, herencia y colecciones" {
     assert.that(gato.energia() == 5)
   }
 
+  // Las consultas filter/any/all/sum no alteran la coleccion.
   test "filter any all y sum consultan la coleccion" {
     const perro = new Perro(nombre = "Mora")
     const gato = new Gato(nombre = "Luna")
@@ -44,6 +48,7 @@ describe "Ejemplos de objetos, herencia y colecciones" {
     assert.that(manada.energiaTotal() == 3)
   }
 
+  // Alimentar modifica la energia de cada animal de la manada.
   test "forEach aplica un efecto a cada elemento" {
     const perro = new Perro(nombre = "Mora")
     const gato = new Gato(nombre = "Luna")
@@ -55,6 +60,7 @@ describe "Ejemplos de objetos, herencia y colecciones" {
     assert.that(gato.energia() == 2)
   }
 
+  // Casos vacios: any es falso, all es verdadero y sum devuelve cero.
   test "any y all tienen resultados definidos para colecciones vacias" {
     const manada = new Manada(animales = [])
 
