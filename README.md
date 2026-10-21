@@ -1,5 +1,27 @@
 # 🌱 Semillas al viento 🌱
 
+> **Consulta rapida de Wollok:** [abrir el machete](MACHETE.md) para ver
+> sintaxis, clases, herencia, bloques, colecciones y testing. Los ejemplos
+> ejecutables estan en [ejemplos.wlk](ejemplos.wlk) y [ejemplos.wtest](ejemplos.wtest).
+> La [referencia de la biblioteca](REFERENCIA-API.md) resume los mensajes mas
+> utiles del lenguaje, diccionarios y Wollok Game.
+
+## Consultar este repo con GitHub Copilot Chat
+
+Abri Copilot Chat desde GitHub con este repositorio como contexto y pregunta
+por los temas de Wollok. Las instrucciones para orientar las respuestas estan
+en [`.github/copilot-instructions.md`](.github/copilot-instructions.md); el
+machete, la referencia API y los ejemplos son la referencia local. Con Copilot
+habilitado en tu cuenta, abre el chat desde GitHub y agrega este repositorio
+como contexto; podes preguntar, por ejemplo, "¿cuando conviene usar
+findOrElse?" o "mostrame como aplicar polimorfismo sin ifs". Si el chat no
+encuentra una respuesta, menciona el archivo correspondiente en la pregunta.
+El PDF completo no se subio: su contenido se resumio en
+[REFERENCIA-API.md](REFERENCIA-API.md) para que el chat pueda consultarlo.
+Para verificar detalles de la version, visita el
+[sitio de Wollok](https://www.wollok.org/) y su
+[repositorio oficial del lenguaje](https://github.com/uqbar-project/wollok-language).
+
 <img src="huerta.jpg" width="500px" />
 
 A raíz de la [polémica](https://www.elancasti.com.ar/opinion/2018/11/27/ley-cuestionada-389812.html) reciente sobre la posibilidad de que se modifique la [Ley de semillas y creaciones fitogenéticas, Nº 20.247](http://servicios.infoleg.gob.ar/infolegInternet/anexos/30000-34999/34822/texact.htm), una organización de pequeños productores nos pidió crear una aplicación para poder medir mejor el desempeño de sus huertas.

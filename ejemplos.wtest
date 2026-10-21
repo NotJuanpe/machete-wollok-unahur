@@ -1,0 +1,65 @@
+import ejemplos.*
+
+describe "Ejemplos de objetos, herencia y colecciones" {
+  test "los objetos responden polimorficamente al mismo mensaje" {
+    const perro = new Perro(nombre = "Mora")
+    const gato = new Gato(nombre = "Luna")
+    const vaca = new Vaca(nombre = "Lola")
+    const manada = new Manada(animales = [perro, gato, vaca])
+
+    assert.that(perro.sonido() == "guau")
+    assert.that(gato.sonido() == "miau")
+    assert.that(vaca.sonido() == "muuu")
+    assert.that(manada.sonidos() == ["guau", "miau", "muuu"])
+  }
+
+  test "el if por especie falla al agregar un tipo nuevo" {
+    const vaca = new Vaca(nombre = "Lola")
+
+    assert.that(sonidoConIf.sonidoDe(vaca) == "sonido desconocido")
+    assert.that(sonidoPolimorfico.sonidoDe(vaca) == "muuu")
+  }
+
+  test "la subclase hereda metodos y redefine otros" {
+    const perro = new Perro(nombre = "Mora")
+    const gato = new Gato(nombre = "Luna")
+
+    perro.comer(5)
+    gato.comer(5)
+
+    assert.that(perro.energia() == 5)
+    assert.that(gato.energia() == 5)
+  }
+
+  test "filter any all y sum consultan la coleccion" {
+    const perro = new Perro(nombre = "Mora")
+    const gato = new Gato(nombre = "Luna")
+    const manada = new Manada(animales = [perro, gato])
+
+    perro.comer(3)
+
+    assert.that(manada.animalesActivos() == [perro])
+    assert.that(manada.hayAnimalActivo())
+    assert.that(!manada.todosEstanActivos())
+    assert.that(manada.energiaTotal() == 3)
+  }
+
+  test "forEach aplica un efecto a cada elemento" {
+    const perro = new Perro(nombre = "Mora")
+    const gato = new Gato(nombre = "Luna")
+    const manada = new Manada(animales = [perro, gato])
+
+    manada.alimentarTodos(2)
+
+    assert.that(perro.energia() == 2)
+    assert.that(gato.energia() == 2)
+  }
+
+  test "any y all tienen resultados definidos para colecciones vacias" {
+    const manada = new Manada(animales = [])
+
+    assert.that(!manada.hayAnimalActivo())
+    assert.that(manada.todosEstanActivos())
+    assert.that(manada.energiaTotal() == 0)
+  }
+}
