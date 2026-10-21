@@ -14,30 +14,44 @@ describe "Ejemplos de objetos, herencia y colecciones" {
     const vaca = new Vaca(nombre = "Lola")
     const manada = new Manada(animales = [perro, gato, vaca])
 
-    assert.that(perro.sonido() == "guau")
-    assert.that(gato.sonido() == "miau")
-    assert.that(vaca.sonido() == "muuu")
-    assert.that(manada.sonidos() == ["guau", "miau", "muuu"])
+    assert.equals("guau", perro.sonido())
+    assert.equals("miau", gato.sonido())
+    assert.equals("muuu", vaca.sonido())
+    assert.equals("GUAU!", firulais.sonido())
+    assert.equals(["guau", "miau", "muuu"], manada.sonidos())
   }
 
   // La vaca demuestra que el if quedo incompleto pero el mensaje polimorfico funciona.
   test "el if por especie falla al agregar un tipo nuevo" {
     const vaca = new Vaca(nombre = "Lola")
 
-    assert.that(sonidoConIf.sonidoDe(vaca) == "sonido desconocido")
-    assert.that(sonidoPolimorfico.sonidoDe(vaca) == "muuu")
+    assert.equals("sonido desconocido", sonidoConIf.sonidoDe(vaca))
+    assert.equals("muuu", sonidoPolimorfico.sonidoDe(vaca))
   }
 
-  // Comer es un efecto heredado y actualiza el estado de cada instancia.
-  test "la subclase hereda metodos y redefine otros" {
+  // Subclase que reutiliza el metodo heredado usando super(...)
+  test "la subclase hereda metodos y puede reutilizar comportamiento con super" {
     const perro = new Perro(nombre = "Mora")
-    const gato = new Gato(nombre = "Luna")
+    const cazador = new PerroDeCaza(nombre = "Rastreador")
 
     perro.comer(5)
-    gato.comer(5)
+    cazador.comer(5)
 
-    assert.that(perro.energia() == 5)
-    assert.that(gato.energia() == 5)
+    assert.equals(5, perro.energia())
+    assert.equals(10, cazador.energia())
+  }
+
+  // Validacion de precondiciones con self.error
+  test "gastar energia valida que alcance y lanza excepcion si no" {
+    const perro = new Perro(nombre = "Mora")
+    perro.comer(10)
+    perro.gastarEnergia(4)
+
+    assert.equals(6, perro.energia())
+    assert.throwsExceptionWithMessage(
+      "Energia insuficiente: tiene 6 pero requiere 10",
+      { perro.gastarEnergia(10) }
+    )
   }
 
   // Las consultas filter/any/all/sum no alteran la coleccion.
@@ -48,10 +62,27 @@ describe "Ejemplos de objetos, herencia y colecciones" {
 
     perro.comer(3)
 
-    assert.that(manada.animalesActivos() == [perro])
+    assert.equals([perro], manada.animalesActivos())
     assert.that(manada.hayAnimalActivo())
-    assert.that(!manada.todosEstanActivos())
-    assert.that(manada.energiaTotal() == 3)
+    assert.notThat(manada.todosEstanActivos())
+    assert.equals(3, manada.energiaTotal())
+  }
+
+  // findOrElse y max buscan elementos en la coleccion
+  test "findOrElse y max realizan busquedas y calculos de extremos" {
+    const perro = new Perro(nombre = "Mora")
+    const gato = new Gato(nombre = "Luna")
+    const manada = new Manada(animales = [perro, gato])
+
+    perro.comer(15)
+    gato.comer(5)
+
+    assert.equals(perro, manada.animalLlamado("Mora"))
+    assert.equals(perro, manada.elMasEnergico())
+    assert.throwsExceptionWithMessage(
+      "No se encontro un animal con nombre: Simona",
+      { manada.animalLlamado("Simona") }
+    )
   }
 
   // Alimentar modifica la energia de cada animal de la manada.
@@ -62,16 +93,40 @@ describe "Ejemplos de objetos, herencia y colecciones" {
 
     manada.alimentarTodos(2)
 
-    assert.that(perro.energia() == 2)
-    assert.that(gato.energia() == 2)
+    assert.equals(2, perro.energia())
+    assert.equals(2, gato.energia())
   }
 
   // Casos vacios: any es falso, all es verdadero y sum devuelve cero.
   test "any y all tienen resultados definidos para colecciones vacias" {
     const manada = new Manada(animales = [])
 
-    assert.that(!manada.hayAnimalActivo())
+    assert.notThat(manada.hayAnimalActivo())
     assert.that(manada.todosEstanActivos())
-    assert.that(manada.energiaTotal() == 0)
+    assert.equals(0, manada.energiaTotal())
+  }
+
+  // Composicion (Strategy): cambia de rol en tiempo de ejecucion
+  test "coordinador califica segun su rol y cantidad de viajes" {
+    const coordGuia = new Coordinador(viajes = 21, estaMotivado = true, rol = guia)
+    const coordAsistente = new Coordinador(viajes = 25, aniosExperiencia = 2, rol = asistenteLogistico)
+    const coordAcompanante = new Coordinador(viajes = 21, rol = acompanante)
+
+    assert.that(coordGuia.esAltamenteCalificado())
+    assert.notThat(coordAsistente.esAltamenteCalificado())
+    assert.that(coordAcompanante.esAltamenteCalificado())
+
+    // Puede cambiar de rol dinamicamente
+    coordGuia.cambiarRol(acompanante)
+    assert.that(coordGuia.esAltamenteCalificado())
+  }
+
+  test "asignar un rol no valido lanza excepcion" {
+    const coord = new Coordinador(viajes = 10, rol = guia)
+
+    assert.throwsExceptionWithMessage(
+      "Rol no permitido: otroRol",
+      { coord.cambiarRol("otroRol") }
+    )
   }
 }

@@ -136,19 +136,28 @@ Los rangos comparten operaciones de colecciones como `map`, `filter`, `sum`,
 - `take(cantidad)` y `drop(cantidad)` toman o descartan caracteres iniciales.
 - `replace(busqueda, reemplazo)` reemplaza texto.
 
-## Bloques y tests
+## Bloques, errores y tests
 
 - Un bloque sin parametros se escribe `{ => expresion }`; con parametros:
   `{ elemento => expresion }`.
 - `bloque.apply(argumentos)` ejecuta un bloque directamente.
-- `assert.that(condicion)` falla si la condicion es falsa.
-- `assert.notThat(condicion)` falla si la condicion es verdadera.
-- `assert.throwsException({ operacion() })` verifica que la operacion lance
-  una excepcion.
+- `self.error(mensaje)`: interrumpe el flujo y lanza una excepcion cuando no
+  se cumple una regla o precondicion.
+- `assert.equals(esperado, actual)`: verifica igualdad de valores y, si falla,
+  informa el valor esperado vs el obtenido.
+- `assert.that(condicion)`: falla si la condicion es falsa.
+- `assert.notThat(condicion)`: falla si la condicion es verdadera.
+- `assert.throwsException({ operacion() })`: verifica que la operacion lance
+  cualquier excepcion.
+- `assert.throwsExceptionWithMessage(mensaje, { operacion() })`: verifica que
+  lance una excepcion con el texto exacto especificado.
 
 ```wollok
+assert.equals(3, [1, 2, 3].size())
 assert.that([1, 2, 3].contains(2))
+assert.notThat([1, 2, 3].isEmpty())
 assert.throwsException({ [].first() })
+assert.throwsExceptionWithMessage("Sin saldo", { cuenta.extraer(1000) })
 ```
 
 ## Inicializacion de instancias

@@ -8,7 +8,7 @@ consulta tambien la [pagina de la materia](https://obj1-unahur.github.io/).
 
 ## Indice
 
-- [Leer un problema de objetos](#leer-un-problema-de-objetos)
+- [Guia paso a paso para resolver un parcial](#guia-paso-a-paso-para-resolver-un-parcial)
 - [Sintaxis basica](#sintaxis-basica)
 - [Objetos, clases y estado](#objetos-clases-y-estado)
 - [Polimorfismo y referencias](#polimorfismo-y-referencias)
@@ -17,18 +17,54 @@ consulta tambien la [pagina de la materia](https://obj1-unahur.github.io/).
 - [Colecciones: elegir y consultar](#colecciones-elegir-y-consultar)
 - [Colecciones: transformar y buscar](#colecciones-transformar-y-buscar)
 - [Colecciones: efectos](#colecciones-efectos)
+- [Manejo de errores y validaciones](#manejo-de-errores-y-validaciones)
 - [Referencia ampliada de la biblioteca](REFERENCIA-API.md)
 - [Testing](#testing)
 - [Dudas tipicas](#dudas-tipicas)
 
-## Leer un problema de objetos
+## Guia paso a paso para resolver un parcial
 
-1. Marca que objetos existen y que sabe o hace cada uno.
-2. Separa **consultas** (devuelven informacion) de **efectos** (cambian algo).
-3. Asigna cada regla al objeto que tiene la informacion necesaria para resolverla.
-4. Si una regla cambia segun el tipo de objeto, usa polimorfismo antes que
-   preguntar por el tipo.
-5. Prueba casos normales, limites y colecciones vacias.
+### 1. Modelado inicial: ¿Clase o WKO (objeto unico)?
+- **¿Pueden existir muchas instancias con sus propios datos?** -> `class` (ej: `Pack`, `Coordinador`, `Beneficio`).
+- **¿Es una entidad unica en el sistema o una constante de comportamiento?** -> `object` (ej: `agencia`, o los roles `object guia`, `object asistenteLogistico`).
+- **¿No debe permitirse instanciar una clase base?** -> Haces la clase **abstracta** declarando un metodo sin cuerpo (ej: `method esPremium()`). Wollok no permitira hacer `new Pack(...)`.
+
+### 2. La pregunta clave: ¿Herencia o Composicion?
+Frente a una variante de comportamiento, preguntate: **¿esto puede cambiar en el tiempo?**
+- **NO cambia nunca (es su naturaleza):** -> **Herencia (`inherits`)**.
+  - Un pack nace nacional o internacional y muere asi. -> `class PackNacional inherits Pack`.
+- **SI puede cambiar durante la ejecucion:** -> **Composicion (Strategy)**.
+  - Si un coordinador puede cambiar de rol entre Guia, Asistente o Acompañante, **no crees subclases de Coordinador**. En Wollok ningun objeto puede cambiar de clase una vez instanciado.
+  - Modela con un atributo `var property rol` que delega en objetos polimorficos.
+
+### 3. Delegacion y "el que sabe, hace" (evitar el `if`)
+- No preguntes atributos ni tipos desde afuera para tomar decisiones:
+  - Mal: `if (coordinador.rol() == "guia" && coordinador.estaMotivado()) ...`
+  - Bien: `coordinador.esAltamenteCalificado()` delega en `self.rol().cumpleCondicion(self)`.
+- Si una regla depende del tipo de pack, envia el mismo mensaje a todos: `pack.esPremium()`. Cada clase lo resuelve a su manera.
+
+### 4. Diccionario mental de Colecciones
+| Si el requerimiento pide... | Mensaje a usar | Ejemplo |
+|---|---|---|
+| Quedarse con los que cumplen | `filter({ e => condicion })` | `beneficios.filter({ b => b.estaVigente() })` |
+| Sumar valores acumulados | `sum({ e => numero })` | `beneficiosVigentes.sum({ b => b.costo() })` |
+| Saber cuantos cumplen | `count({ e => condicion })` | `beneficios.count({ b => b.estaVigente() }) >= 3` |
+| Si todos cumplen | `all({ e => condicion })` | `coordinadores.all({ c => c.esCalificado() })` |
+| Si al menos uno cumple | `any({ e => condicion })` | `packs.any({ p => p.esLugarDeInteres() })` |
+| Cantidad total de elementos | `size()` | `actividades.size() >= 4` |
+| Buscar uno o valor por defecto | `findOrElse(cond, { def })` | `beneficios.findOrElse({ b => b.tipo() == "VIP" }, { null })` |
+| El maximo o minimo segun criterio | `max({ e => valor })` | `packs.max({ p => p.precioFinal() })` |
+
+### 5. Validaciones y excepciones ("Fail Fast")
+Cuando la consigna diga: *"En caso de X, debe lanzar una excepcion / rechazar la operacion"*:
+1. Ubica el metodo de efecto (ej: `cambiarRol(nuevoRol)` o `gastarEnergia(cuanto)`).
+2. Valida al inicio: `if (!condicionValida) self.error("Mensaje explicativo")`.
+3. Nunca modifiques el estado si la validacion falla.
+
+### 6. Reutilizar codigo con `super()`
+Cuando un subtipo extiende o cobra un recargo sobre un calculo general:
+- No recalcules todo desde cero: invoca a `super()` para obtener el resultado de la clase padre y aplicale tu variacion:
+  `override method precioFinal() = super() * 1.20`.
 
 ## Sintaxis basica
 
@@ -198,16 +234,16 @@ que muestra la diferencia estan en [ejemplos.wlk](ejemplos.wlk) y
 class Animal {
   var property energia = 0
 
-  method alimentarse() {
-    self.energia(self.energia() + 10)
+  method alimentarse(cantidad) {
+    self.energia(self.energia() + cantidad)
   }
 
   method estaActivo() = self.energia() > 0
 }
 
 class Gato inherits Animal {
-  override method alimentarse() {
-    super.alimentarse()
+  override method alimentarse(cantidad) {
+    super(cantidad)
     self.energia(self.energia() + 5)
   }
 }
@@ -215,11 +251,12 @@ class Gato inherits Animal {
 
 - `inherits` hereda comportamiento y estado.
 - `override` declara que se redefine un metodo heredado.
-- `super.metodo(argumentos)` ejecuta la version de la superclase.
+- `super()` o `super(argumentos)` ejecuta la version de la superclase del mismo
+  metodo. En Wollok **no se usa punto** (nunca escribas `super.metodo()`).
 - Redefini solo cuando la subclase realmente necesita otro comportamiento.
 - En Wollok no hace falta una palabra `abstract class`: una clase que declara
-  un metodo sin implementacion es abstracta y no se instancia directamente.
-  Las subclases concretas deben implementar ese metodo:
+  un metodo sin implementacion es abstracta y no se puede instanciar
+  directamente. Las subclases concretas deben implementar ese metodo:
 
 ```wollok
 class Figura {
@@ -229,6 +266,30 @@ class Figura {
 class Cuadrado inherits Figura {
   var property lado
   override method area() = self.lado() * self.lado()
+}
+```
+
+### Composicion vs Herencia (cuando el rol cambia en el tiempo)
+
+- **Regla de oro:** Un objeto en Wollok **no puede cambiar de clase** una vez instanciado.
+- Si el enunciado dice que un objeto puede **cambiar de rol, modo o estrategia**
+  (por ejemplo, un coordinador que cambia de rol entre Guia, Asistente o Acompañante),
+  **no uses herencia**. Modela el rol con un atributo (`var property rol`) que apunta
+  a objetos polimorficos (patron Strategy o State):
+
+```wollok
+class Coordinador {
+  var property rol
+
+  method puedeGuiar() = self.rol().puedeGuiar(self)
+}
+
+object guia {
+  method puedeGuiar(coordinador) = true
+}
+
+object acompanante {
+  method puedeGuiar(coordinador) = false
 }
 ```
 
@@ -329,35 +390,76 @@ plantas.forEach({ planta => planta.regar() })
   revisa que el problema pida modificarla y no simplemente calcular un
   resultado.
 
-## Testing
+## Manejo de errores y validaciones
+
+Para validar precondiciones y evitar que un objeto realice una accion invalida o
+quede en un estado inconsistente, Wollok provee el mensaje `self.error("mensaje")`:
 
 ```wollok
-describe "Comportamiento de Persona" {
-  test "es mayor desde los 18 inclusive" {
-    const persona = new Persona(nombre = "Ana", edad = 18)
-    assert.that(persona.esMayor())
-  }
+class Cuenta {
+  var property saldo = 0
 
-  test "rechaza una operacion invalida" {
-    assert.throwsException({ unaOperacionInvalida() })
+  method extraer(monto) {
+    if (monto > self.saldo()) {
+      self.error("Saldo insuficiente para extraer " + monto)
+    }
+    self.saldo(self.saldo() - monto)
   }
 }
 ```
 
-Prueba valores limite (por ejemplo `17`, `18`, `19`), ambos resultados de una
-condicion, listas vacias y no vacias, y que los efectos cambien el estado
-esperado. Un test por comportamiento concreto hace mas facil encontrar errores.
+- `self.error("mensaje")` interrumpe de inmediato la ejecucion y lanza una excepcion.
+- Las lineas posteriores al error **no se ejecutan**, protegiendo el estado del objeto.
+- Valida siempre al inicio del metodo (fail fast).
+
+## Testing
+
+```wollok
+describe "Comportamiento de Persona y Cuenta" {
+  test "es mayor desde los 18 inclusive" {
+    const persona = new Persona(nombre = "Ana", edad = 18)
+    assert.that(persona.esMayor())
+    assert.notThat(new Persona(nombre = "Tomi", edad = 17).esMayor())
+  }
+
+  test "calcula correctamente el saldo restante" {
+    const cuenta = new Cuenta(saldo = 100)
+    cuenta.extraer(40)
+    assert.equals(60, cuenta.saldo())
+  }
+
+  test "rechaza una extraccion que supera el saldo" {
+    const cuenta = new Cuenta(saldo = 50)
+    assert.throwsExceptionWithMessage(
+      "Saldo insuficiente para extraer 100",
+      { cuenta.extraer(100) }
+    )
+  }
+}
+```
+
+- Usa **`assert.equals(esperado, actual)`** en lugar de `assert.that(actual == esperado)`:
+  si la prueba falla, Wollok muestra qué valor llegó y cuál se esperaba.
+- Usa `assert.notThat(condicion)` cuando esperas un resultado falso.
+- Usa `assert.throwsException({ bloque })` o
+  `assert.throwsExceptionWithMessage("mensaje", { bloque })` para verificar
+  que se rechacen operaciones invalidas.
+- Prueba valores limite (por ejemplo `17`, `18`, `19`), ambos resultados de una
+  condicion, listas vacias y no vacias, y que los efectos cambien el estado esperado.
 
 ## Dudas tipicas
 
 | Si te preguntas... | Acordate de... |
 |---|---|
 | `==` o `===`? | Igualdad de valores o identidad de referencia, respectivamente. |
+| `assert.equals` o `assert.that`? | `assert.equals(esperado, actual)` da mejores mensajes de error cuando falla. |
 | `map` o `forEach`? | Construir resultados o ejecutar efectos, respectivamente. |
 | `filter` o `any`? | Obtener los que cumplen o saber si alguno cumple. |
 | `const` significa inmutable? | No: no se reasigna la referencia, pero el objeto puede cambiar. |
-| Debo preguntar `if (esSoja)`? | Mejor envia el mismo mensaje y deja que cada tipo responda. |
-| `first()` puede fallar? | Si, cuando no hay elementos. Maneja ese caso. |
+| Un objeto puede cambiar de clase? | No: si su rol/estrategia cambia dinamicamente, usa composicion (`var property rol`). |
+| Como validar una regla o rol permitido? | `if (!condicion) self.error("mensaje")` corta el flujo y lanza excepcion. |
+| Debo preguntar `if (esSoja)`? | Mejor envia el mismo mensaje y deja que cada tipo responda (polimorfismo). |
+| `first()` puede fallar? | Si, cuando no hay elementos. Maneja ese caso o usa `findOrElse`. |
 | Una lista y un conjunto son iguales? | No: la lista tiene orden y admite repetidos; el conjunto no. |
 
 La documentacion de la materia es la referencia final si necesitas confirmar un

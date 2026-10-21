@@ -10,9 +10,11 @@ explicaciones cortas, ejemplos ejecutables y tests.
 - [Ejemplos Wollok](ejemplos.wlk)
 - [Tests de los ejemplos](ejemplos.wtest)
 
-Los ejemplos muestran objetos, clases, polimorfismo, herencia, bloques y
-colecciones e inicializacion con `initialize()`. En particular, comparan un
-`if` que pregunta el tipo con una solucion polimorfica.
+Los ejemplos muestran objetos, clases, polimorfismo, herencia con `super()`,
+composicion dinamica (patron Strategy con roles), bloques, colecciones
+(busquedas y transformaciones), validaciones con `self.error()` e inicializacion
+con `initialize()`. En particular, comparan un `if` que pregunta el tipo con
+una solucion polimorfica.
 
 ## Consultar con GitHub Copilot Chat
 
